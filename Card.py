@@ -6,15 +6,22 @@ class Card(CTk.CTkFrame):
     this defaults to emission computation for Household appliances.
     Pass down the function to `command` parameter. This will call the function to maually compute for the value.
     """
-    def __init__(self, name, top, down, constant=0.6032, command = None, mode="household", *args, **kwargs):
+    def __init__(self, name, top, down, constant=0.6032, command = None, mode="household", 
+                 topText = 'Hours used per day:', bottomText = 'Rated Wattage:', *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.mode=mode
         self.color="red"
         self.evaluation = ""
         self.name=name
-        self.top=top
-        self.down=down
-        self.value= constant*top*down*7 if command is None else command(top, down)
+        self.topValue=top
+        self.downValue=down
+        self.topText=topText
+        self.downText=bottomText
+
+        try:
+            self.value= constant*float(top)*float(down)*7 if command is None else command(top, down)
+        except:
+            pass
         self.evaluate()
         self.configure(width=290, height=105, border_color="#383838",
                  border_width=2, corner_radius=17, fg_color="#ebebeb", bg_color="white")
@@ -43,13 +50,13 @@ class Card(CTk.CTkFrame):
         CTk.CTkLabel(self,width=188, height=20, font=("Poppins",16,"bold"), text_color=textColor,
                       text=self.name, anchor=CTk.W, **colors).place(x=20,y=15)
         CTk.CTkLabel(self,width=150, height=20, font=("Poppins",16), text_color=textColor,
-                      text=topText, anchor=CTk.W, **colors).place(x=20,y=50)
+                      text=self.topText, anchor=CTk.W, **colors).place(x=20,y=50)
         CTk.CTkLabel(self,width=50, height=20, font=("Poppins",16, "bold"), text_color=textColor,
-                      text=f'{self.top} {topUnit}', anchor=CTk.W, **colors).place(x=220,y=50)
+                      text=f'{self.topValue} {topUnit}', anchor=CTk.W, **colors).place(x=220,y=50)
         CTk.CTkLabel(self,width=150, height=20, font=("Poppins",16), text_color=textColor,
-                      text=bottomText, anchor=CTk.W, **colors).place(x=20,y=70)
+                      text=self.downText, anchor=CTk.W, **colors).place(x=20,y=70)
         CTk.CTkLabel(self,width=50, height=20, font=("Poppins",16, "bold"), text_color=textColor,
-                      text=f'{self.down} {bottomUnit}', anchor=CTk.W, **colors).place(x=220,y=70)
+                      text=f'{self.downValue} {bottomUnit}', anchor=CTk.W, **colors).place(x=220,y=70)
         CTk.CTkLabel(self,width=50, height=20, font=("Poppins",16, "bold"), text_color="black",
                       text=self.evaluation, anchor=CTk.W, fg_color=self.color,bg_color="#ebebeb", corner_radius=8).place(x=220,y=15)
         

@@ -171,7 +171,7 @@ class Login(CTk.CTk):
 
     def setMainComponent(self):
         colors = {"fg_color":"white", "bg_color":"white"}
-
+        colors2 = {"fg_color":"#F6F6F6","bg_color":"#F6F6F6"}
         right_frame = CTk.CTkFrame(self,width=1064,height=900, corner_radius=0, **colors)
         right_frame.place(x=376,y=0)
         self.welcome = CTk.CTkLabel(self, text="Welcome back, John!",font=("Poppins",43), text_color="#383838",**colors)
@@ -181,21 +181,30 @@ class Login(CTk.CTk):
         self.householdPageName = CTk.CTkLabel(self, text="Household", font=("Poppins",18, "bold"), text_color="#383838", fg_color="#F6F6F6",bg_color="white")
         self.transportationPageName = CTk.CTkLabel(self, text="Transportation", font=("Poppins",18, "bold"), text_color="#383838", fg_color="#F6F6F6",bg_color="white")
         self.activitiesPageName = CTk.CTkLabel(self, text="Activities", font=("Poppins",18, "bold"), text_color="#383838", fg_color="#F6F6F6",bg_color="white")
-        self.householdScrollable_frame = CTk.CTkScrollableFrame(self,width=320, height=580, corner_radius=15,fg_color="#F6F6F6",bg_color="#F6F6F6")
-        self.transportationScrollable_frame = CTk.CTkScrollableFrame(self, width=320, height=580, corner_radius=15,fg_color="#F6F6F6",bg_color="#F6F6F6")
-        self.activitiesScrollable_frame = CTk.CTkScrollableFrame(self, width=320, height=580, corner_radius=15,fg_color="#F6F6F6",bg_color="#F6F6F6")
-
+        self.householdScrollable_frame = CTk.CTkScrollableFrame(self,width=320, height=580, corner_radius=15,**colors2)
+        self.transportationScrollable_frame = CTk.CTkScrollableFrame(self, width=320, height=580, corner_radius=15,**colors2)
+        self.activitiesScrollable_frame = CTk.CTkScrollableFrame(self, width=320, height=580, corner_radius=15,**colors2)
+        self.mode = {}
         self.resultsFrame = CTk.CTkFrame(self,width=610,height=600, corner_radius=17, fg_color="#C9C9C9", bg_color="#F6F6F6", border_color="black",border_width=3)
         self.resultsFrame.place(x=775, y=240)
         self.addButtonIcon = Image.open("assets/addButton.png")
         self.addButtonImage = CTk.CTkImage(self.addButtonIcon, size=(50,50))
         self.addButton = CTk.CTkLabel(self,width=50, height=50, text="", image=self.addButtonImage,fg_color="#F6F6F6", cursor="hand2")
-        self.addButton.bind("<Button-1>", self.addItem)
+        self.addButton.bind("<Button-1>", self.setNewItemFrame)
         self.addButton.place(x=700, y= 188)
         self.activate_household(None)
-    def addItem(self, _):
-        newcard = Card(master=self.selected, name="Refrigerator",top=8, down=0.5)
+    def addItem(self, name = "", top=0, down=0):
+        self.setNewItemFrame()
+        newcard = Card(master=self.selected, name=name,top=top, down=down, **self.mode)
         newcard.pack(side = CTk.TOP, anchor = CTk.W, padx=0)
+        self.name_label.destroy()
+        self.name_entry.destroy()
+        self.top_label.destroy()
+        self.top_entry.destroy()
+        self.down_label.destroy()
+        self.down_entry.destroy()
+        self.submit_button.destroy()
+        self.newItemFrame.place_forget()
         print(f"newCard: {newcard.value}")
         match self.selected:
             case self.householdScrollable_frame:
@@ -204,9 +213,31 @@ class Login(CTk.CTk):
                 self.transportation_cards.append({newcard.name: [newcard.value, newcard.evaluation]})
             case self.activitiesScrollable_frame:
                 self.activities_cards.append({newcard.name: [newcard.value, newcard.evaluation]})
+    def setNewItemFrame(self, _ = None):
+        colors2 = {"fg_color":"#F6F6F6","bg_color":"#F6F6F6"}
+        self.newItemFrame=CTk.CTkFrame(self,width=320, height=300, corner_radius=15, border_color="black",border_width=2, **colors2)
+        self.newItemFrame.place(x=430, y=240)
+        self.name_label = CTk.CTkLabel(self.newItemFrame, text="Name:", text_color="#383838")
+        self.name_label.grid(row=0, column=0, padx=10, pady=5)
+        self.name_entry = CTk.CTkEntry(self.newItemFrame)
+        self.name_entry.grid(row=0, column=1, padx=10, pady=5)
+        self.top_label = CTk.CTkLabel(self.newItemFrame, text=self.mode["topText"], text_color="#383838")
+        self.top_label.grid(row=1, column=0, padx=10, pady=5)
+        self.top_entry = CTk.CTkEntry(self.newItemFrame)
+        self.top_entry.grid(row=1, column=1, padx=10, pady=5)
+        self.down_label = CTk.CTkLabel(self.newItemFrame, text=self.mode["bottomText"], text_color="#383838")
+        self.down_label.grid(row=2, column=0, padx=10, pady=5)
+        self.down_entry = CTk.CTkEntry(self.newItemFrame)
+        self.down_entry.grid(row=2, column=1, padx=10, pady=5)
+        self.submit_button = CTk.CTkButton(self.newItemFrame, text="Submit", 
+                                           command=lambda: self.addItem(self.name_entry.get(),self.top_entry.get(),self.down_entry.get()))
+        self.submit_button.grid(row=3, column=0, columnspan=2, padx=10, pady=10)
+
 
     def activate_household(self, _):
         self.selected = self.householdScrollable_frame
+        self.newItemFrame.destroy()
+        self.mode = {"mode": "household", "topText": "Hours used per day: ", "bottomText": "Rated Wattage: "}
         self.householdButton.configure(text="\u2192  Household", font=("Poppins", 20, "bold"), text_color="black")
         self.transportationButton.configure(text="Transportation", font=("Poppins", 12, "bold"), text_color="white")
         self.activitiesButton.configure(text="Activities", font=("Poppins", 12, "bold"), text_color="white")
@@ -221,12 +252,15 @@ class Login(CTk.CTk):
 
     def activate_transportation(self, _):
         self.selected=self.transportationScrollable_frame
+        self.newItemFrame.destroy()
+        self.mode = {"mode": "transportation", "topText": "Distance travelled per day: ", "bottomText": "Travel days per week: "}
+
         self.householdButton.configure(text="Household", font=("Poppins", 12, "bold"), text_color="white")
         self.transportationButton.configure(text="\u2192  Transportation", font=("Poppins", 20, "bold"), text_color="black")
         self.activitiesButton.configure(text="Activities", font=("Poppins", 12, "bold"), text_color="white")
 
         self.householdPageName.place_forget()
-        self.transportationPageName.place(x=410, y=200)
+        self.transportationPageName.place(x=430, y=200)
         self.activitiesPageName.place_forget()
 
         self.householdScrollable_frame.place_forget()
@@ -235,18 +269,19 @@ class Login(CTk.CTk):
         
     def activate_activities(self, _):
         self.selected=self.activitiesScrollable_frame
+        self.newItemFrame.destroy()
+        self.mode = {"mode": "activities", "topText": "Consumed per day: ", "bottomText": ""}
         self.householdButton.configure(text="Household", font=("Poppins", 12, "bold"), text_color="white")
         self.transportationButton.configure(text="Transportation", font=("Poppins", 12, "bold"), text_color="white")
         self.activitiesButton.configure(text="\u2192  Activities", font=("Poppins", 20, "bold"), text_color="black")
 
         self.householdPageName.place_forget()
         self.transportationPageName.place_forget()
-        self.activitiesPageName.place(x=410, y=200)
+        self.activitiesPageName.place(x=430, y=200)
 
         self.householdScrollable_frame.place_forget()
         self.transportationScrollable_frame.place_forget()
-        self.activitiesScrollable_frame.place(x=430, y=240)
-
+        self.activitiesScrollable_frame.place(x=410, y=240)
 
     def onEnter(self, label: CTk.CTkLabel, _):
         if label == self.selected:
@@ -256,7 +291,6 @@ class Login(CTk.CTk):
         if label == self.selected:
             return
         label.configure(text_color="white", font=("poppins",12 ))
-
 
 if __name__ == '__main__':
 
