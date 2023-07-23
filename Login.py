@@ -75,8 +75,8 @@ class Login(CTk.CTk):
         self.register_link = CTk.CTkLabel(self,text="Register Now", text_color="lightgray", font=("poppins",18), cursor = "hand2", **colors)
         self.register_link.place(x=1100, y=570)
         self.register_link.bind('<Button-1>', self.switch)
-        self.register_link.bind('<Enter>', partial(self.onEnter, self.register_link))
-        self.register_link.bind('<Leave>', partial(self.onLeave, self.register_link))
+        self.register_link.bind('<Enter>', partial(self.onEnterLogin, self.register_link))
+        self.register_link.bind('<Leave>', partial(self.onLeaveLogin, self.register_link))
 
     def login(self):
         self.loginCommand(self.username_value.get(), self.password_value.get())
@@ -101,10 +101,10 @@ class Login(CTk.CTk):
         self.isLogin = True
         return
     
-    def onEnter(self, label: CTk.CTkLabel, _):
+    def onEnterLogin(self, label: CTk.CTkLabel, _):
         label.configure(text_color="red")
 
-    def onLeave(self, label: CTk.CTkLabel, _):
+    def onLeaveLogin(self, label: CTk.CTkLabel, _):
         label.configure(text_color="lightgray")
         
 

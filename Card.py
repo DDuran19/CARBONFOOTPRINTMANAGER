@@ -39,7 +39,7 @@ class Card(CTk.CTkFrame):
                 bottomUnit = ""
 
         textColor = "black"
-        colors = {"fg_color":"#ebebeb", "bg_color":"white"}
+        colors = {"fg_color":"#ebebeb", "bg_color":"#F6F6F6"}
         CTk.CTkLabel(self,width=188, height=20, font=("Poppins",16,"bold"), text_color=textColor,
                       text=self.name, anchor=CTk.W, **colors).place(x=20,y=15)
         CTk.CTkLabel(self,width=150, height=20, font=("Poppins",16), text_color=textColor,
@@ -51,7 +51,7 @@ class Card(CTk.CTkFrame):
         CTk.CTkLabel(self,width=50, height=20, font=("Poppins",16, "bold"), text_color=textColor,
                       text=f'{self.down} {bottomUnit}', anchor=CTk.W, **colors).place(x=220,y=70)
         CTk.CTkLabel(self,width=50, height=20, font=("Poppins",16, "bold"), text_color="black",
-                      text=self.evaluation, anchor=CTk.W, fg_color=self.color,bg_color="#ebebeb", corner_radius=8).place(x=230,y=15)
+                      text=self.evaluation, anchor=CTk.W, fg_color=self.color,bg_color="#ebebeb", corner_radius=8).place(x=220,y=15)
         
     def evaluate(self):
         good_threshold = 5.0
