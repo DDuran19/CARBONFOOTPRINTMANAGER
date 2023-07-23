@@ -126,9 +126,7 @@ class CarbonFootprint(CTk.CTk):
     def onEnter(self, label: CTk.CTkLabel, _):
         if label == self.selected:
             return
-        label.configure(text_color="yellow", font=("poppins",20, "bold"))
-        
-
+        label.configure(text_color="yellow", font=("poppins",20, "bold"))     
     def onLeave(self, label: CTk.CTkLabel, _):
         if label == self.selected:
             return
