@@ -21,7 +21,7 @@ class Card(CTk.CTkFrame):
         try:
             self.value= constant*float(top)*float(down)*7 if command is None else command(top, down)
         except:
-            pass
+            self.value= command(top, down)
         self.evaluate()
         self.configure(width=290, height=105, border_color="#383838",
                  border_width=2, corner_radius=17, fg_color="#ebebeb", bg_color="white")
@@ -30,18 +30,12 @@ class Card(CTk.CTkFrame):
     def setName(self):
         match self.mode:
             case "household":
-                topText = 'Hours used per day:'
-                bottomText = 'Rated Wattage:'
                 topUnit = ""
                 bottomUnit = "KWh"
             case "transportation":
-                topText = 'Distance travelled per day:'
-                bottomText = 'Travel days per week:'
                 topUnit = "Km"
                 bottomUnit = ""
             case "activities":
-                topText = 'Consumed per day:'
-                bottomText = ''
                 topUnit = ""
                 bottomUnit = ""
 

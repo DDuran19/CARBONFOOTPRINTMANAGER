@@ -1,8 +1,10 @@
 import customtkinter as CTk
 
+from tkinter import messagebox
 from PIL import Image
 from functools import partial
 from Card import Card
+from queries import UserAuthentication
 
 class Login(CTk.CTk):
     def __init__(self, login, register, *args, **kwargs):
@@ -16,8 +18,15 @@ class Login(CTk.CTk):
         self.registerCommand = register
         self.isLogin = True
         self.registerOnHover = False
+        self.setupLoginScreen()
+    def setupLoginScreen(self, event = None):
+        if event is not None:
+            response = messagebox.askyesno(title="Sign Out", message="Are you sure you want to sign out?")
+            if not response:
+                return False
         self.left_rectangle()
         self.right_rectangle()
+        return True        
     def center_window(self):
         screen_width = self.winfo_screenwidth()
         screen_height = self.winfo_screenheight()
@@ -82,32 +91,47 @@ class Login(CTk.CTk):
         self.register_link.bind('<Leave>', partial(self.onLeaveLogin, self.register_link))
 
     def login(self):
-        # self.loginCommand(self.username_value.get(), self.password_value.get())
+        isLoggedIn = self.loginCommand(self.username_value.get(), self.password_value.get())
+        if not isLoggedIn:
+            messagebox.showwarning(title="Unsuccessful", message="Invalid username or password")
+            return
         # Hide ALL EXISTING WIDGETS
-        self.left_rectangleLabel.destroy()
-        self.title.destroy()
-        self.read_more.destroy()
-        self.right_frame.destroy()
-        self.username_frame.destroy()
-        self.usernameIcon.destroy()
-        self.passwordIcon.destroy()
-        self.usernameEntry.destroy()
-        self.greeting1.destroy()
-        self.greeting2.destroy()
-        self.passwordEntry.destroy()
-        self.password_frame.destroy()
-        self.login_button.destroy()
-        self.register_link.destroy()
+        modal_components = [self.left_rectangleLabel.destroy, 
+        self.title.destroy, 
+        self.read_more.destroy, 
+        self.right_frame.destroy, 
+        self.username_frame.destroy, 
+        self.usernameIcon.destroy, 
+        self.passwordIcon.destroy, 
+        self.usernameEntry.destroy, 
+        self.greeting1.destroy, 
+        self.greeting2.destroy, 
+        self.passwordEntry.destroy, 
+        self.password_frame.destroy, 
+        self.login_button.destroy, 
+        self.register_link.destroy]
+        for component in modal_components:
+            try:
+                component()
+            except AttributeError:
+                continue
 
         self.selected = None
         self.setSideBar()
         self.setMainComponent()
 
-
     def regUser(self):
-        self.registerCommand(self.username_value.get(), self.password_value.get())
-      
-    def switch(self, event):
+        validRegistration = self.registerCommand(self.username_value.get(), self.password_value.get())
+        if not validRegistration:
+            messagebox.showwarning(title="Unsuccessful", message="Username already exists. Try a new username.")
+            return
+        messagebox.showinfo(title="Successful!", message="User registered successfully!")
+        
+        self.switch()
+
+    def switch(self, event = None):
+        self.username_value.set("")
+        self.password_value.set("")
         if self.isLogin:
             self.greeting1.configure(text="Hello!")
             self.greeting2.configure(text="Sign Up to Get Started")
@@ -168,16 +192,18 @@ class Login(CTk.CTk):
         self.activitiesButton.bind('<Button-1>', self.activate_activities)
         self.signoutButton.bind('<Enter>', partial(self.onEnter, self.signoutButton))
         self.signoutButton.bind('<Leave>', partial(self.onLeave, self.signoutButton))
+        self.signoutButton.bind('<Button-1>', self.askForSignOutConfirmation)
 
     def setMainComponent(self):
         colors = {"fg_color":"white", "bg_color":"white"}
         colors2 = {"fg_color":"#F6F6F6","bg_color":"#F6F6F6"}
-        right_frame = CTk.CTkFrame(self,width=1064,height=900, corner_radius=0, **colors)
-        right_frame.place(x=376,y=0)
+        self.right_frame = CTk.CTkFrame(self,width=1064,height=900, corner_radius=0, **colors)
+        self.right_frame.place(x=376,y=0)
         self.welcome = CTk.CTkLabel(self, text="Welcome back, John!",font=("Poppins",43), text_color="#383838",**colors)
         self.welcome.place(x=406, y=70)
 
-        CTk.CTkFrame(self,width=1005,height=693, corner_radius=17, fg_color="#F6F6F6", bg_color="white", border_color="black",border_width=3).place(x=406,y=185)
+        self.namelessFrame = CTk.CTkFrame(self,width=1005,height=693, corner_radius=17, fg_color="#F6F6F6", bg_color="white", border_color="black",border_width=3)
+        self.namelessFrame.place(x=406,y=185)
         self.householdPageName = CTk.CTkLabel(self, text="Household", font=("Poppins",18, "bold"), text_color="#383838", fg_color="#F6F6F6",bg_color="white")
         self.transportationPageName = CTk.CTkLabel(self, text="Transportation", font=("Poppins",18, "bold"), text_color="#383838", fg_color="#F6F6F6",bg_color="white")
         self.activitiesPageName = CTk.CTkLabel(self, text="Activities", font=("Poppins",18, "bold"), text_color="#383838", fg_color="#F6F6F6",bg_color="white")
@@ -190,22 +216,16 @@ class Login(CTk.CTk):
         self.addButtonIcon = Image.open("assets/addButton.png")
         self.addButtonImage = CTk.CTkImage(self.addButtonIcon, size=(50,50))
         self.addButton = CTk.CTkLabel(self,width=50, height=50, text="", image=self.addButtonImage,fg_color="#F6F6F6", cursor="hand2")
+        self.addIsActive = False
         self.addButton.bind("<Button-1>", self.setNewItemFrame)
         self.addButton.place(x=700, y= 188)
+        self.newItemFrame=CTk.CTkFrame(self,width=320, height=300, corner_radius=15, border_color="black",border_width=2, **colors2)
         self.activate_household(None)
     def addItem(self, name = "", top=0, down=0):
         self.setNewItemFrame()
         newcard = Card(master=self.selected, name=name,top=top, down=down, **self.mode)
         newcard.pack(side = CTk.TOP, anchor = CTk.W, padx=0)
-        self.name_label.destroy()
-        self.name_entry.destroy()
-        self.top_label.destroy()
-        self.top_entry.destroy()
-        self.down_label.destroy()
-        self.down_entry.destroy()
-        self.submit_button.destroy()
-        self.newItemFrame.place_forget()
-        print(f"newCard: {newcard.value}")
+        self.destroyModal()
         match self.selected:
             case self.householdScrollable_frame:
                 self.household_cards.append({newcard.name: [newcard.value, newcard.evaluation]})
@@ -213,7 +233,32 @@ class Login(CTk.CTk):
                 self.transportation_cards.append({newcard.name: [newcard.value, newcard.evaluation]})
             case self.activitiesScrollable_frame:
                 self.activities_cards.append({newcard.name: [newcard.value, newcard.evaluation]})
+    def destroyModal(self):
+        try:
+            modal_components = [self.name_label.destroy, 
+            self.name_entry.destroy, 
+            self.top_label.destroy, 
+            self.top_entry.destroy, 
+            self.down_label.destroy, 
+            self.down_entry.destroy, 
+            self.submit_button.destroy, 
+            self.newItemFrame.place_forget]
+
+            for component in modal_components:
+                try:
+                    component()
+                except:
+                    continue
+        except:
+            pass
+        finally:
+            self.addIsActive = False
     def setNewItemFrame(self, _ = None):
+        if self.addIsActive:
+            self.destroyModal()
+            return
+        else:
+            self.addIsActive = True
         colors2 = {"fg_color":"#F6F6F6","bg_color":"#F6F6F6"}
         self.newItemFrame=CTk.CTkFrame(self,width=320, height=300, corner_radius=15, border_color="black",border_width=2, **colors2)
         self.newItemFrame.place(x=430, y=240)
@@ -236,7 +281,7 @@ class Login(CTk.CTk):
 
     def activate_household(self, _):
         self.selected = self.householdScrollable_frame
-        self.newItemFrame.destroy()
+        self.destroyModal()
         self.mode = {"mode": "household", "topText": "Hours used per day: ", "bottomText": "Rated Wattage: "}
         self.householdButton.configure(text="\u2192  Household", font=("Poppins", 20, "bold"), text_color="black")
         self.transportationButton.configure(text="Transportation", font=("Poppins", 12, "bold"), text_color="white")
@@ -252,7 +297,7 @@ class Login(CTk.CTk):
 
     def activate_transportation(self, _):
         self.selected=self.transportationScrollable_frame
-        self.newItemFrame.destroy()
+        self.destroyModal()
         self.mode = {"mode": "transportation", "topText": "Distance travelled per day: ", "bottomText": "Travel days per week: "}
 
         self.householdButton.configure(text="Household", font=("Poppins", 12, "bold"), text_color="white")
@@ -269,7 +314,7 @@ class Login(CTk.CTk):
         
     def activate_activities(self, _):
         self.selected=self.activitiesScrollable_frame
-        self.newItemFrame.destroy()
+        self.destroyModal()
         self.mode = {"mode": "activities", "topText": "Consumed per day: ", "bottomText": ""}
         self.householdButton.configure(text="Household", font=("Poppins", 12, "bold"), text_color="white")
         self.transportationButton.configure(text="Transportation", font=("Poppins", 12, "bold"), text_color="white")
@@ -292,7 +337,32 @@ class Login(CTk.CTk):
             return
         label.configure(text_color="white", font=("poppins",12 ))
 
-if __name__ == '__main__':
+    def askForSignOutConfirmation(self, _=None):
+        if not self.setupLoginScreen(event=True):
+            return
+        commands = [self.namelessFrame.destroy,
+        self.householdButton.destroy,
+        self.transportationButton.destroy,
+        self.activitiesButton.destroy,
+        self.signoutButton.destroy,
+        self.right_frame.destroy,
+        self.welcome.destroy,
+        self.householdPageName.destroy,
+        self.transportationPageName.destroy,
+        self.activitiesPageName.destroy,
+        self.householdScrollable_frame.destroy,
+        self.transportationScrollable_frame.destroy,
+        self.activitiesScrollable_frame.destroy,
+        self.resultsFrame.destroy,
+        self.addButton.destroy,
+        self.destroyModal,
+        self.newItemFrame.destroy]
 
-    app = Login(lambda x, y: print(f'{x}, {y}'), lambda x, y: print(f'{x}, {y}'))
+        for command in commands:
+            try:
+                command()
+            except: pass
+if __name__ == '__main__':
+    auth = UserAuthentication()
+    app = Login(auth.login, auth.register)
     app.mainloop()
