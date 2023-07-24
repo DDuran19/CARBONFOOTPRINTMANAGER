@@ -281,6 +281,7 @@ class Login(CTk.CTk):
 
     def activate_household(self, _):
         self.selected = self.householdScrollable_frame
+        self.selectedLabel = self.householdButton
         self.destroyModal()
         self.mode = {"mode": "household", "topText": "Hours used per day: ", "bottomText": "Rated Wattage: "}
         self.householdButton.configure(text="\u2192  Household", font=("Poppins", 20, "bold"), text_color="black")
@@ -297,6 +298,7 @@ class Login(CTk.CTk):
 
     def activate_transportation(self, _):
         self.selected=self.transportationScrollable_frame
+        self.selectedLabel=self.transportationButton
         self.destroyModal()
         self.mode = {"mode": "transportation", "topText": "Distance travelled per day: ", "bottomText": "Travel days per week: "}
 
@@ -314,6 +316,7 @@ class Login(CTk.CTk):
         
     def activate_activities(self, _):
         self.selected=self.activitiesScrollable_frame
+        self.selectedLabel=self.activitiesButton
         self.destroyModal()
         self.mode = {"mode": "activities", "topText": "Consumed per day: ", "bottomText": ""}
         self.householdButton.configure(text="Household", font=("Poppins", 12, "bold"), text_color="white")
@@ -329,11 +332,11 @@ class Login(CTk.CTk):
         self.activitiesScrollable_frame.place(x=410, y=240)
 
     def onEnter(self, label: CTk.CTkLabel, _):
-        if label == self.selected:
+        if label == self.selectedLabel:
             return
         label.configure(text_color="yellow", font=("poppins",20, "bold"))     
     def onLeave(self, label: CTk.CTkLabel, _):
-        if label == self.selected:
+        if label == self.selectedLabel:
             return
         label.configure(text_color="white", font=("poppins",12 ))
 
