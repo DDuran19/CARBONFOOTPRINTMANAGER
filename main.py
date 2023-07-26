@@ -1,5 +1,10 @@
 import customtkinter as CTk
+import tkinter as Tk
 import json
+import colorsys
+import math
+import pandas as pd
+import matplotlib.pyplot as plt
 
 from tkinter import messagebox
 from PIL import Image
@@ -7,15 +12,22 @@ from functools import partial
 from Card import Card
 from userQuery import UserAuthentication
 from dataProcessor import DataProcessor
-from CarbonFootprint import CarbonFootprint
-from calculations import VEHICLES
+from calculations import VEHICLES, CarbonFootprintCalculator
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+from results import CircularProgressBar
+
+
+
 with open("household.json", "r") as file:
     HOUSEHOLD = json.load(file)
 
 with open("activities.json", "r") as file:
     ACTIVITIES = json.load(file)
 
+WHITE = "white"
+
 class Login(CTk.CTk):
+    USER = ""
     def __init__(self, login, register, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.center_window()
@@ -105,6 +117,7 @@ class Login(CTk.CTk):
             messagebox.showwarning(title="Unsuccessful", message="Invalid username or password")
             return
         # Hide ALL EXISTING WIDGETS
+        self.USER = self.username_value.get()
         modal_components = [self.left_rectangleLabel.destroy, 
         self.title.destroy, 
         self.read_more.destroy, 
@@ -208,7 +221,7 @@ class Login(CTk.CTk):
         colors2 = {"fg_color":"#F6F6F6","bg_color":"#F6F6F6"}
         self.right_frame = CTk.CTkFrame(self,width=1064,height=900, corner_radius=0, **colors)
         self.right_frame.place(x=376,y=0)
-        self.welcome = CTk.CTkLabel(self, text="Welcome back, John!",font=("Poppins",43), text_color="#383838",**colors)
+        self.welcome = CTk.CTkLabel(self, text=f"Welcome back, {self.USER.title()}!",font=("Poppins",43), text_color="#383838",**colors)
         self.welcome.place(x=406, y=70)
 
         self.namelessFrame = CTk.CTkFrame(self,width=1005,height=693, corner_radius=17, fg_color="#F6F6F6", bg_color="white", border_color="black",border_width=3)
@@ -220,8 +233,8 @@ class Login(CTk.CTk):
         self.transportationScrollable_frame = CTk.CTkScrollableFrame(self, width=320, height=580, corner_radius=15,**colors2)
         self.activitiesScrollable_frame = CTk.CTkScrollableFrame(self, width=320, height=580, corner_radius=15,**colors2)
         self.mode = {}
-        self.resultsFrame = CTk.CTkFrame(self,width=610,height=600, corner_radius=17, fg_color="#C9C9C9", bg_color="#F6F6F6", border_color="black",border_width=3)
-        self.resultsFrame.place(x=775, y=240)
+        self.resultsFrame = CTk.CTkFrame(self,width=620,height=600, corner_radius=17, fg_color=WHITE, bg_color="#F6F6F6", border_color="black",border_width=3)
+        self.resultsFrame.place(x=770, y=240)
         self.addButtonIcon = Image.open("assets/addButton.png")
         self.addButtonImage = CTk.CTkImage(self.addButtonIcon, size=(50,50))
         self.addButton = CTk.CTkLabel(self,width=50, height=50, text="", image=self.addButtonImage,fg_color="#F6F6F6", cursor="hand2")
@@ -232,7 +245,7 @@ class Login(CTk.CTk):
         self.activate_household(None)
     def addItem(self, name = "", top=0, down=0):
         self.setNewItemFrame()
-        newcard = Card(master=self.selected, name=name,top=top, down=down, **self.mode)
+        newcard = Card(master=self.selected, name=name,top=top, down=down, updateCommand=self.update_results, **self.mode)
         newcard.pack(side = CTk.TOP, anchor = CTk.W, padx=0)
         self.destroyModal()
         match self.selected:
@@ -242,6 +255,7 @@ class Login(CTk.CTk):
                 self.transportation_cards[newcard]=[newcard.emissionsPerHour, newcard.evaluation]
             case self.activitiesScrollable_frame:
                 self.activities_cards[newcard]=[newcard.emissionsPerHour, newcard.evaluation]
+        self.update_results()
         print(self.household_cards)
         print(self.transportation_cards)
         print(self.activities_cards)
@@ -284,6 +298,11 @@ class Login(CTk.CTk):
             case self.householdButton:
                 values = HOUSEHOLD
                 self.down_entry = CTk.CTkEntry(self.newItemFrame)
+                self.down_entry.bind("<KeyPress>",command=lambda event: self.validate_entry(
+                event=event,
+                entry=self.top_entry,
+                button=self.submit_button,
+            ))
             case self.transportationButton:
                 values = list(VEHICLES.keys())
                 self.down_entry = CTk.CTkComboBox(self.newItemFrame, values=daysInAWeek)
@@ -309,11 +328,12 @@ class Login(CTk.CTk):
                 entry=self.top_entry,
                 button=self.submit_button,
             ))
+        
         self.submit_button.grid(row=3, column=0, columnspan=2, padx=10, pady=10)
     def validate_entry(self, event, entry: CTk.CTkEntry, button: CTk.CTkButton, command=None):
         value = event.char
         try:
-            float(entry.get())
+            float(entry.get()+value)
             isFloat = True
         except ValueError:
             isFloat = False
@@ -416,9 +436,138 @@ class Login(CTk.CTk):
             try:
                 command()
             except: pass
+
+    def update_results(self):
+
+        self.carbonFootprint = CarbonFootprintCalculator(self.household_cards, self.transportation_cards, self.activities_cards)
+        weekly_emission = self.carbonFootprint.get_weekly_emission()
+        monthly_emission = self.carbonFootprint.get_monthly_emission()
+        yearly_emission = self.carbonFootprint.get_yearly_emission()
+
+        raw = DataProcessor()
+        data = raw.get_ranking(weekly_emission)
+
+        # Define colors for the bar chart
+        color_map = plt.get_cmap("Blues")
+        colors = [color_map(1 - (i / (len(data) - 1))) for i in range(len(data))]
+
+        # Set the color for "Your Footprint" to green
+        colors[data.index.get_loc("Your Footprint")] = "green"
+
+        self.figure = plt.Figure(figsize=(6, 3))
+        self.axes = self.figure.add_subplot(111)
+
+        bars = data.plot.bar(
+            x="", y="KgCO2perWeek", ax=self.axes, edgecolor="black", color=colors
+        )
+
+        # Set the font color for "Your Footprint" to red
+        bars.get_xticklabels()[data.index.get_loc("Your Footprint")].set_color("red")
+
+        self.axes.set_xticklabels(self.axes.get_xticklabels(), rotation=10)
+
+        # Add labels for the bar heights
+        for rectangle in self.axes.patches:
+            x = rectangle.get_x() + rectangle.get_width() / 2
+            y = rectangle.get_height() / 2
+            count_value = int(rectangle.get_height())
+            self.axes.text(
+                x,
+                y,
+                count_value,
+                ha="center",
+                va="center",
+                color="black",
+                bbox={"facecolor": "white", "edgecolor": "none"},
+            )
+
+        self.figure.tight_layout()  # Automatically adjusts the layout to fit the figure within the parent container
+
+        self.canvas = FigureCanvasTkAgg(self.figure, master=self.resultsFrame)
+        self.canvas.draw()
+        # self.canvas.get_tk_widget().pack(side=CTk.TOP, fill=CTk.BOTH, expand=True)
+        self.canvas.get_tk_widget().place(x=8, y=5)
+        self.tips(raw.get_percentage(), self.resultsFrame)
+
+    def tips(self, percentage, parent):
+        descriptionFont = CTk.CTkFont(family="Helvetica", size=12, weight="bold")
+        ratingFont = CTk.CTkFont(family="Helvetica", size=12)
+
+        # top_level = CTk.CTkToplevel(parent, fg_color=WHITE)
+        # top_level.resizable(False,False)
+        # top_level.title("Carbon Footprint Results")
+        # top_level.geometry(f"400x600+{self.master.winfo_rootx()+self.winfo_width()-3}+{self.master.winfo_rooty()-30}")
+        formatted_percentage = format(100 * percentage, ".2f")
+        percentage *= 100
+        color = self.generate_hex_color(percentage)
+        rating = self.generate_rating(percentage)
+
+        self.canvas = CTk.CTkCanvas(
+            self.resultsFrame, width=200, height=200, background=WHITE, highlightthickness=0
+        )
+        self.canvas.place(x=10, y=280)
+        self.progress = CircularProgressBar(
+            self.canvas, percentage=percentage, color=color, rating=rating[0]
+        )
+        description_label = CTk.CTkLabel(
+            self.resultsFrame,
+            text=f"Your footprint rating: {formatted_percentage}%",
+            font=descriptionFont,
+            justify=CTk.LEFT,
+            width=195,
+            wraplength=200,
+            text_color="black"
+        )
+        description_label.place(x=210, y=300)
+        rating_label = CTk.CTkLabel(
+            self.resultsFrame,
+            text=rating[1],
+            font=ratingFont,
+            justify=CTk.LEFT,
+            width=195,
+            wraplength=200,
+            text_color="black"
+        )
     
-    def dataProcessing(self):
-        self.dataProcesor=DataProcessor()
+        rating_label.place(x=210, y=340)
+
+
+    def generate_hex_color(self, value):
+        if value == 100:
+            return "#FF0000"
+        normalized_value = value / 100
+        hue = (120 - (normalized_value * 120)) / 360
+        r, g, b = colorsys.hsv_to_rgb(hue, 1, 1)
+
+        hex_color = "#{:02x}{:02x}{:02x}".format(
+            int(r * 255), int(g * 255), int(b * 255)
+        )
+
+        return hex_color
+
+    def generate_rating(self, percentage):
+        if percentage > 80:
+            rating = "VERY BAD"
+            response = "Your carbon footprint emission is very high. It is crucial to take immediate action to reduce your emissions and adopt more sustainable practices."
+        elif percentage > 60:
+            rating = "Bad"
+            response = "Your carbon footprint emission is high. Consider implementing changes in your lifestyle and habits to lower your emissions and contribute to a greener environment."
+        elif percentage > 50:
+            rating = "Average"
+            response = "Your carbon footprint emission is at an average level. There is still room for improvement in reducing your emissions and embracing more eco-friendly choices."
+        elif percentage < 5:
+            rating = "Excellent!"
+            response = "Congratulations! Your carbon footprint emission is extremely low. You are making a significant positive impact on the environment with your sustainable practices."
+        elif percentage < 15:
+            rating = "Very Good"
+            response = "Great job! Your carbon footprint emission is very low. Continue practicing sustainable behaviors to further reduce your emissions and protect the planet."
+        elif percentage < 30:
+            rating = "Good"
+            response = "Your carbon footprint emission is good. Keep up the efforts to lower your emissions and strive for even better sustainability practices."
+        else:
+            rating = "Unknown"
+            response = "We couldn't determine an appropriate response for your carbon footprint emission score. Please consult with a specialist for further evaluation."
+        return rating, response
 
 if __name__ == '__main__':
     auth = UserAuthentication()

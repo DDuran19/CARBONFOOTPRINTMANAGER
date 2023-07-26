@@ -7,11 +7,10 @@ with open("activities.json", "r") as file:
     ACTIVITIES = json.load(file)
 class Card(CTk.CTkFrame):
     """
-    This is designed to be used as a front end.
-    this defaults to emission computation for Household appliances.
-    Pass down the function to `command` parameter. This will call the function to maually compute for the value.
+    Now handles all computation
     """
-    def __init__(self, name, top, down, exitCommand = lambda _ :print("Supply exit command parameter!"), mode="household", 
+    def __init__(self, name, top, down, exitCommand = lambda _ :print("Supply exit command parameter!"),
+                    updateCommand = lambda _:print("Supply an update command!"), mode="household", 
                  topText = 'Hours used per day:', bottomText = 'Rated Wattage:', *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.mode=mode
@@ -23,6 +22,7 @@ class Card(CTk.CTkFrame):
         self.topText=topText
         self.downText=bottomText
         self.exitCommand = exitCommand
+        self.updateCommand = updateCommand
         self.multiplier = self.topValue * self.downValue 
 
 
@@ -50,7 +50,7 @@ class Card(CTk.CTkFrame):
         vehicle = VEHICLES[self.name]
         hoursPerWeek = 168
         emissionPerKm = vehicle["KgCO2perKm"] * self.multiplier
-        emissionPerL = vehicle["KmperL"] * vehicle["defaultFuel"] * self.multiplier
+        emissionPerL = (self.multiplier/vehicle["KmperL"]) * vehicle["defaultFuel"]
         totalEmissionsPerWeek = emissionPerKm + emissionPerL 
         self.emissionsPerHour = totalEmissionsPerWeek / hoursPerWeek
     
@@ -98,6 +98,7 @@ class Card(CTk.CTkFrame):
                       text=self.evaluation, anchor=CTk.W, fg_color=self.color,bg_color="#ebebeb", corner_radius=8).place(x=210,y=15)
     def exit(self, _=None):
         self.exitCommand(self)
+        self.updateCommand()
         self.destroy()     
     def evaluate(self):
         good_threshold = 5.0
