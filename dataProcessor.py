@@ -1,5 +1,5 @@
 import pandas as pd
-LOCATION = "data/worldEmissionData.csv"
+LOCATION = "worldEmissionData.csv"
 class DataProcessor:
 
     def __init__(self, csv_file=LOCATION):

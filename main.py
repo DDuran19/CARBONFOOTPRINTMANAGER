@@ -1,18 +1,27 @@
 import customtkinter as CTk
+import json
 
 from tkinter import messagebox
 from PIL import Image
 from functools import partial
 from Card import Card
-from queries import UserAuthentication
+from userQuery import UserAuthentication
+from dataProcessor import DataProcessor
+from CarbonFootprint import CarbonFootprint
+from calculations import VEHICLES
+with open("household.json", "r") as file:
+    HOUSEHOLD = json.load(file)
+
+with open("activities.json", "r") as file:
+    ACTIVITIES = json.load(file)
 
 class Login(CTk.CTk):
     def __init__(self, login, register, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.center_window()
-        self.household_cards=[]
-        self.transportation_cards=[]
-        self.activities_cards=[]
+        self.household_cards={}
+        self.transportation_cards={}
+        self.activities_cards={}
         self.title("Carbong Footprint Manager")
         self.loginCommand = login
         self.registerCommand = register
@@ -228,11 +237,14 @@ class Login(CTk.CTk):
         self.destroyModal()
         match self.selected:
             case self.householdScrollable_frame:
-                self.household_cards.append({newcard.name: [newcard.value, newcard.evaluation]})
+                self.household_cards[newcard]=[newcard.emissionsPerHour, newcard.evaluation]
             case self.transportationScrollable_frame:
-                self.transportation_cards.append({newcard.name: [newcard.value, newcard.evaluation]})
+                self.transportation_cards[newcard]=[newcard.emissionsPerHour, newcard.evaluation]
             case self.activitiesScrollable_frame:
-                self.activities_cards.append({newcard.name: [newcard.value, newcard.evaluation]})
+                self.activities_cards[newcard]=[newcard.emissionsPerHour, newcard.evaluation]
+        print(self.household_cards)
+        print(self.transportation_cards)
+        print(self.activities_cards)
     def destroyModal(self):
         try:
             modal_components = [self.name_label.destroy, 
@@ -259,12 +271,29 @@ class Login(CTk.CTk):
             return
         else:
             self.addIsActive = True
+
+        values = []
+        daysInAWeek = ["1","2","3","4","5","6","7"]
+        self.down_entry=None
+
         colors2 = {"fg_color":"#F6F6F6","bg_color":"#F6F6F6"}
         self.newItemFrame=CTk.CTkFrame(self,width=320, height=300, corner_radius=15, border_color="black",border_width=2, **colors2)
         self.newItemFrame.place(x=430, y=240)
+
+        match self.selectedLabel:
+            case self.householdButton:
+                values = HOUSEHOLD
+                self.down_entry = CTk.CTkEntry(self.newItemFrame)
+            case self.transportationButton:
+                values = list(VEHICLES.keys())
+                self.down_entry = CTk.CTkComboBox(self.newItemFrame, values=daysInAWeek)
+            case self.activitiesButton:
+                values = list(ACTIVITIES.keys())
+                self.down_entry = CTk.CTkComboBox(self.newItemFrame, values=daysInAWeek)
+
         self.name_label = CTk.CTkLabel(self.newItemFrame, text="Name:", text_color="#383838")
         self.name_label.grid(row=0, column=0, padx=10, pady=5)
-        self.name_entry = CTk.CTkEntry(self.newItemFrame)
+        self.name_entry = CTk.CTkComboBox(self.newItemFrame, values=values)
         self.name_entry.grid(row=0, column=1, padx=10, pady=5)
         self.top_label = CTk.CTkLabel(self.newItemFrame, text=self.mode["topText"], text_color="#383838")
         self.top_label.grid(row=1, column=0, padx=10, pady=5)
@@ -272,18 +301,37 @@ class Login(CTk.CTk):
         self.top_entry.grid(row=1, column=1, padx=10, pady=5)
         self.down_label = CTk.CTkLabel(self.newItemFrame, text=self.mode["bottomText"], text_color="#383838")
         self.down_label.grid(row=2, column=0, padx=10, pady=5)
-        self.down_entry = CTk.CTkEntry(self.newItemFrame)
         self.down_entry.grid(row=2, column=1, padx=10, pady=5)
-        self.submit_button = CTk.CTkButton(self.newItemFrame, text="Submit", 
+        self.submit_button = CTk.CTkButton(self.newItemFrame, text="Submit", state=CTk.DISABLED,
                                            command=lambda: self.addItem(self.name_entry.get(),self.top_entry.get(),self.down_entry.get()))
+        self.top_entry.bind("<KeyPress>",command=lambda event: self.validate_entry(
+                event=event,
+                entry=self.top_entry,
+                button=self.submit_button,
+            ))
         self.submit_button.grid(row=3, column=0, columnspan=2, padx=10, pady=10)
+    def validate_entry(self, event, entry: CTk.CTkEntry, button: CTk.CTkButton, command=None):
+        value = event.char
+        try:
+            float(entry.get())
+            isFloat = True
+        except ValueError:
+            isFloat = False
 
+        # if value.isalpha() and value != "\x0D":
+        #     button.configure(state=CTk.DISABLED)
+        # elif isFloat and command is not None:
+        #     command()
+        if isFloat:
+            button.configure(require_redraw=True, state=CTk.NORMAL)
+        else:
+            button.configure(state=CTk.DISABLED)
 
     def activate_household(self, _):
         self.selected = self.householdScrollable_frame
         self.selectedLabel = self.householdButton
         self.destroyModal()
-        self.mode = {"mode": "household", "topText": "Hours used per day: ", "bottomText": "Rated Wattage: "}
+        self.mode = {"mode": "household", "topText": "Hours used per day: ", "bottomText": "Rated Wattage: ", "exitCommand": lambda x: self.household_cards.pop(x) }
         self.householdButton.configure(text="\u2192  Household", font=("Poppins", 20, "bold"), text_color="black")
         self.transportationButton.configure(text="Transportation", font=("Poppins", 12, "bold"), text_color="white")
         self.activitiesButton.configure(text="Activities", font=("Poppins", 12, "bold"), text_color="white")
@@ -300,7 +348,7 @@ class Login(CTk.CTk):
         self.selected=self.transportationScrollable_frame
         self.selectedLabel=self.transportationButton
         self.destroyModal()
-        self.mode = {"mode": "transportation", "topText": "Distance travelled per day: ", "bottomText": "Travel days per week: "}
+        self.mode = {"mode": "transportation", "topText": "Distance travelled per day: ", "bottomText": "Travel days per week: ", "exitCommand": lambda x: self.transportation_cards.pop(x)}
 
         self.householdButton.configure(text="Household", font=("Poppins", 12, "bold"), text_color="white")
         self.transportationButton.configure(text="\u2192  Transportation", font=("Poppins", 20, "bold"), text_color="black")
@@ -318,7 +366,7 @@ class Login(CTk.CTk):
         self.selected=self.activitiesScrollable_frame
         self.selectedLabel=self.activitiesButton
         self.destroyModal()
-        self.mode = {"mode": "activities", "topText": "Consumed per day: ", "bottomText": ""}
+        self.mode = {"mode": "activities", "topText": "Consumed per day: ", "bottomText": "Days per Week: ", "exitCommand": lambda x: self.activities_cards.pop(x)}
         self.householdButton.configure(text="Household", font=("Poppins", 12, "bold"), text_color="white")
         self.transportationButton.configure(text="Transportation", font=("Poppins", 12, "bold"), text_color="white")
         self.activitiesButton.configure(text="\u2192  Activities", font=("Poppins", 20, "bold"), text_color="black")
@@ -343,6 +391,9 @@ class Login(CTk.CTk):
     def askForSignOutConfirmation(self, _=None):
         if not self.setupLoginScreen(event=True):
             return
+        self.household_cards = {}
+        self.transportation_cards = {}
+        self.activities_cards = {}
         commands = [self.namelessFrame.destroy,
         self.householdButton.destroy,
         self.transportationButton.destroy,
@@ -365,6 +416,10 @@ class Login(CTk.CTk):
             try:
                 command()
             except: pass
+    
+    def dataProcessing(self):
+        self.dataProcesor=DataProcessor()
+
 if __name__ == '__main__':
     auth = UserAuthentication()
     app = Login(auth.login, auth.register)
