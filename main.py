@@ -524,9 +524,6 @@ class Login(CTk.CTk):
                     newcard.evaluation,
                 ]
         self.update_results()
-        print(self.household_cards)
-        print(self.transportation_cards)
-        print(self.activities_cards)
 
     def destroyModal(self):
         try:
@@ -777,7 +774,6 @@ class Login(CTk.CTk):
                 self.newItemFrame.destroy,
             ]
         except:
-            print("ERROR 777")
             pass
 
         for command in commands:
@@ -785,7 +781,6 @@ class Login(CTk.CTk):
                 command()
 
             except:
-                print("ERROR 777")
                 continue
 
     def update_results(self):
