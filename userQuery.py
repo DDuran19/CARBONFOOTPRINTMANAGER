@@ -1,9 +1,16 @@
 import json
+import random
+import string
+
 
 class UserAuthentication:
     def __init__(self, filename="users.json"):
         self.filename = filename
         self.users_data = self.load_users_data()
+
+    def generate_session_id(self, length=5):
+        characters = string.ascii_letters + string.digits
+        return "".join(random.choice(characters) for _ in range(length))
 
     def load_users_data(self):
         try:
@@ -20,6 +27,8 @@ class UserAuthentication:
     def login(self, username, password):
         for user in self.users_data:
             if user["username"] == username and user["password"] == password:
+                user["sessionId"] = self.generate_session_id()
+                self.save_users_data()
                 return True
         return False
 
@@ -30,7 +39,7 @@ class UserAuthentication:
             self.save_users_data()
             return True
         return False
-    
+
     def change_password(self, username, old_password, new_password):
         for user in self.users_data:
             if user["username"] == username and user["password"] == old_password:
@@ -38,6 +47,7 @@ class UserAuthentication:
                 self.save_users_data()
                 return True
         return False
+
 
 # Example usage:
 if __name__ == "__main__":
@@ -54,6 +64,8 @@ if __name__ == "__main__":
 
     # Attempt to register an existing username
     print(auth.register("user2", "password3"))  # Output: False
-    
+
     # Attempt to change password with wrong old password
-    print(auth.change_password("user1", "wrong_password", "newerpassword"))  # Output: False
+    print(
+        auth.change_password("user1", "wrong_password", "newerpassword")
+    )  # Output: False
