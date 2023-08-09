@@ -29,8 +29,15 @@ class UserAuthentication:
             if user["username"] == username and user["password"] == password:
                 user["sessionId"] = self.generate_session_id()
                 self.save_users_data()
-                return True
+                return user["sessionId"]
         return False
+
+    def logout(self, username):
+        for user in self.users_data:
+            if user["username"] == username:
+                user["sessionId"] = ""
+                self.save_users_data()
+                return
 
     def register(self, username, password):
         if not any(user["username"] == username for user in self.users_data):

@@ -1,11 +1,13 @@
 [
     {
         "username": "user1",
-        "password": "password1"
+        "password": "password1",
+        "sessionId": ""
     },
     {
         "username": "user2",
-        "password": "password2"
+        "password": "password2",
+        "sessionId": "Tstrb"
     },
     {
         "username": "Denver",

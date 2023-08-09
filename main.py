@@ -16,7 +16,7 @@ from dataProcessor import DataProcessor
 from calculations import VEHICLES, CarbonFootprintCalculator
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from results import CircularProgressBar
-
+from sessionIdchecker import SessionMonitorThread
 
 with open("household.json", "r") as file:
     HOUSEHOLD = json.load(file)
@@ -227,16 +227,23 @@ class Login(CTk.CTk):
         )
 
     def login(self):
-        isLoggedIn = self.loginCommand(
-            self.username_value.get(), self.password_value.get()
-        )
-        if not isLoggedIn:
+        self.USER = self.username_value.get()
+
+        sessionId = self.loginCommand(self.USER, self.password_value.get())
+        if not sessionId:
             messagebox.showwarning(
                 title="Unsuccessful", message="Invalid username or password"
             )
             return
+
+        session_monitor = SessionMonitorThread(
+            self.USER,
+            lambda: self.askForSignOutConfirmation(self, forcedSignout=True),
+            sessionId=sessionId,
+        )
+        session_monitor.daemon = True
+        session_monitor.start()
         # Hide ALL EXISTING WIDGETS
-        self.USER = self.username_value.get()
         modal_components = [
             self.left_rectangleLabel.destroy,
             self.title.destroy,
@@ -256,7 +263,7 @@ class Login(CTk.CTk):
         for component in modal_components:
             try:
                 component()
-            except AttributeError:
+            except:
                 continue
 
         self.selected = None
@@ -738,37 +745,48 @@ class Login(CTk.CTk):
             return
         label.configure(text_color="white", font=("poppins", 12))
 
-    def askForSignOutConfirmation(self, _=None):
-        if not self.setupLoginScreen(event=True):
-            return
+    def askForSignOutConfirmation(self, _=None, forcedSignout: bool = False):
+        if not forcedSignout:
+            if not self.setupLoginScreen(event=True):
+                return
+        else:
+            self.setupLoginScreen()
+
+        UserAuthentication().logout(self.USER)
         self.household_cards = {}
         self.transportation_cards = {}
         self.activities_cards = {}
-        commands = [
-            self.namelessFrame.destroy,
-            self.householdButton.destroy,
-            self.transportationButton.destroy,
-            self.activitiesButton.destroy,
-            self.signoutButton.destroy,
-            self.right_frame.destroy,
-            self.welcome.destroy,
-            self.householdPageName.destroy,
-            self.transportationPageName.destroy,
-            self.activitiesPageName.destroy,
-            self.householdScrollable_frame.destroy,
-            self.transportationScrollable_frame.destroy,
-            self.activitiesScrollable_frame.destroy,
-            self.resultsFrame.destroy,
-            self.addButton.destroy,
-            self.destroyModal,
-            self.newItemFrame.destroy,
-        ]
+        try:
+            commands = [
+                self.namelessFrame.destroy,
+                self.householdButton.destroy,
+                self.transportationButton.destroy,
+                self.activitiesButton.destroy,
+                self.signoutButton.destroy,
+                self.right_frame.destroy,
+                self.welcome.destroy,
+                self.householdPageName.destroy,
+                self.transportationPageName.destroy,
+                self.activitiesPageName.destroy,
+                self.householdScrollable_frame.destroy,
+                self.transportationScrollable_frame.destroy,
+                self.activitiesScrollable_frame.destroy,
+                self.resultsFrame.destroy,
+                self.addButton.destroy,
+                self.destroyModal,
+                self.newItemFrame.destroy,
+            ]
+        except:
+            print("ERROR 777")
+            pass
 
         for command in commands:
             try:
                 command()
+
             except:
-                pass
+                print("ERROR 777")
+                continue
 
     def update_results(self):
         self.carbonFootprint = CarbonFootprintCalculator(
