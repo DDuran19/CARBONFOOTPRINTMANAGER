@@ -32,7 +32,6 @@ class SessionMonitorThread(threading.Thread):
                 for user in session_data:
                     if user["username"] == self.username:
                         current_session_id = user.get("sessionId", "")
-                        print(f"I am checking {self.username}")
                         if current_session_id != self.sessionId:
                             self.signout_function()
 
@@ -40,6 +39,6 @@ class SessionMonitorThread(threading.Thread):
                         break
 
             except FileNotFoundError:
-                pass  # File doesn't exist yet, no need to worry
+                pass
 
             time.sleep(self.check_interval)
