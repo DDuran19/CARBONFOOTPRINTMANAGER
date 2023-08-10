@@ -746,10 +746,11 @@ class Login(CTk.CTk):
         if not forcedSignout:
             if not self.setupLoginScreen(event=True):
                 return
+            UserAuthentication().logout(self.USER)
+
         else:
             self.setupLoginScreen()
 
-        UserAuthentication().logout(self.USER)
         self.household_cards = {}
         self.transportation_cards = {}
         self.activities_cards = {}
