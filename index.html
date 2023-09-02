@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+        <link
+            href="https://fonts.googleapis.com/css2?family=Inter&family=Nunito&display=swap"
+            rel="stylesheet"
+        />
+        <link
+            rel="icon"
+            type="image/x-icon"
+            href="https://duran-solutions.vercel.app/favicon.ico"
+        />
+        <title>Carbon Footprint Manager</title>
+        <style>
+            :root {
+                --main-background: linear-gradient(
+                    90deg,
+                    rgb(103, 218, 143) 0%,
+                    rgb(156, 238, 157) 42%,
+                    rgb(156, 236, 152) 56%,
+                    rgba(103, 218, 103, 1) 100%
+                );
+            }
+            html {
+                scroll-behavior: smooth;
+            }
+            * {
+                padding: 0;
+                margin: 0;
+                box-sizing: 0;
+                font-family: "Inter", sans-serif;
+            }
+            body {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                background: var(--main-background);
+            }
+            .main ol {
+                padding-left: 0.5em;
+            }
+
+            ol li {
+                list-style-type: decimal; /* or 'decimal-leading-zero', 'upper-alpha', 'lower-alpha'... */
+                list-style-position: outside; /* or 'inside' */
+                margin-left: 2em; /* gives 'room' for the numbers to appear in */
+            }
+            section {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                min-width: 650px;
+                max-width: 600px;
+                margin: 10px 0;
+                padding: 10px 0;
+                border: 1px solid black;
+                border-radius: 20px;
+                background-color: #fff;
+                box-shadow: 10px 5px 20px #000000;
+            }
+            img {
+                max-width: 500px;
+            }
+            h1,
+            h2 {
+                text-align: center;
+                font-family: "Nunito", sans-serif;
+                width: 95%;
+                position: sticky;
+                top: 60px;
+                background-color: #fff;
+            }
+            p {
+                margin: 0.5rem 0;
+            }
+            #introduction {
+                text-align: center;
+            }
+            li > p > img {
+                margin-bottom: 20px;
+            }
+            .navContainer {
+                position: sticky;
+                z-index: 1;
+                top: 0;
+                background: var(--main-background);
+                width: 100%;
+                height: 60px;
+                display: flex;
+                justify-content: center;
+            }
+            .navbar {
+                width: min(100%, 800px);
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                margin: 20px;
+                padding-top: 10px;
+                padding-bottom: 10px;
+            }
+            #business_logo {
+                border: 1px solid black;
+                width: 35ch;
+                text-align: center;
+                padding: 10px;
+                border-radius: 10px;
+                box-shadow: 10px 5px 15px #05112a;
+                color: #000;
+                font-weight: bold;
+                max-height: 40px;
+            }
+            .navbar > ul {
+                width: 100%;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                flex-wrap: wrap;
+                list-style-type: none;
+                gap: 5px;
+            }
+            .navbar > ul > li > a {
+                color: #000;
+                text-decoration: none;
+            }
+            .navbar > ul > li > a:hover {
+                text-shadow: rgba(19, 93, 253, 0.25) 0px 54px 55px,
+                    rgba(19, 93, 253, 0.12) 0px -12px 30px,
+                    rgba(19, 93, 253, 0.12) 0px 4px 6px,
+                    rgba(19, 93, 253, 0.17) 0px 12px 13px,
+                    rgba(19, 93, 253, 0.09) 0px -3px 5px;
+                color: rgb(0, 0, 0);
+                font-weight: bold;
+            }
+
+            .currentPage {
+                text-shadow: rgba(19, 93, 253, 0.25) 0px 54px 55px,
+                    rgba(19, 93, 253, 0.12) 0px -12px 30px,
+                    rgba(19, 93, 253, 0.12) 0px 4px 6px,
+                    rgba(19, 93, 253, 0.17) 0px 12px 13px,
+                    rgba(19, 93, 253, 0.09) 0px -3px 5px;
+                color: rgb(0, 0, 0);
+                font-weight: bold;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="navContainer">
+            <nav class="navbar">
+                <a id="business_logo" href="#">Carbon Footprint Manager</a>
+
+            </nav>
+        </div>
+        <main>
+            <section id="introduction">
+                <h1 id="molleybolley">Carbon Footprint Manager</h1>
+                <p>
+                    Welcome to the Carbon Footprint Manager, your tool for
+                    measuring and understanding your environmental impact. Our
+                    software empowers you to calculate your carbon footprint by
+                    inputting your daily activities and then compares it to
+                    global data. Take a step towards a greener future with us.
+                </p>
+            </section>
+            <section id="gettingStarted">
+                <h2>Getting Started</h2>
+                <p>To get started, follow these steps:</p>
+                <ol>
+                    <li>
+                        <p>
+                            Click the "Register Now" link below the "Register/
+                            Login Button"
+                        </p>
+                        <p>
+                            <img
+                                src="assets/webassets/register.gif"
+                                alt="Step 1: Register"
+                            />
+                        </p>
+                    </li>
+                    <li>
+                        <p>
+                            Upon successful registration, you should now be able
+                            to log in using your registered account.
+                        </p>
+                        <p>
+                            <img
+                                src="assets/webassets/login.gif"
+                                alt="Step 2: Login steps"
+                            />
+                        </p>
+                    </li>
+                    <li>
+                        <p>
+                            Upon successful login, you will see the main screen.
+                            There, you can select from the list of categories on
+                            the left and add activities to the list
+                        </p>
+                        <p>
+                            <img
+                                src="assets/webassets/addActivity.gif"
+                                alt="Step 3: Main Screen"
+                            />
+                        </p>
+                    </li>
+                    <li>
+                        <p>
+                            Fill out the details on the input, press submit and
+                            you will see your input on the card below. Right
+                            after that, a real time assessment will pop up on
+                            the right of the screen showing you your carbon
+                            footprint analysis and comparison among the general
+                            average of countries (emmission-wise) globally.
+                        </p>
+                        <p>
+                            <img
+                                src="assets/webassets/addActivity2.gif"
+                                alt="Step 4: Add activity"
+                            />
+                        </p>
+                    </li>
+                    <li>
+                        <p>
+                            You can stack multiple activities together. The
+                            results on the right will base on all of your inputs
+                            accross all categories.
+                        </p>
+                        <p>
+                            <img
+                                src="assets/webassets/stackActivities.gif"
+                                alt="Step 5: Stack Activities"
+                            />
+                        </p>
+                    </li>
+                    <li>
+                        <p>
+                            Once you are done using the application, you can
+                            click the "Sign Out" button on the left side of the
+                            screen. A prompt will appear asking you to confirm
+                            your sign out.Regarding signouts, the app implements
+                            a single sign in policy. If you try to login using
+                            the same account on a different instance of the
+                            application, the older app will be automatically
+                            signed out.
+                        </p>
+                        <p>
+                            <img
+                                src="assets/webassets/stackActivities.gif"
+                                alt="Step 6: Sign out"
+                            />
+                        </p>
+                    </li>
+            </section>
+        </main>
+        <script>
+            const navLinks = document.querySelectorAll(".navbar a");
+
+            function reset() {
+                navLinks.forEach((link) => {
+                    link.classList.contains("currentPage")
+                        ? link.classList.remove("currentPage")
+                        : null;
+                });
+            }
+
+            function highlightCurrentPage(e) {
+                reset();
+                e.target.classList.add("currentPage");
+            }
+
+            navLinks.forEach((link) => {
+                link.onclick = highlightCurrentPage;
+            });
+        </script>
+    </body>
+</html>
